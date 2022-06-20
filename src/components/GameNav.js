@@ -1,39 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 
-const GameNav = ({ gameScoreStreak, gameActive, updateGameState }) => {
-  const [gameTimer, setGameTimer] = useState(0);
-  const [displayedGameTimer, setDisplayedGameTimer] = useState("00:00:00");
-
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    const minutes = Math.floor(gameTimer / 60);
-    const seconds = gameTimer - minutes * 60;
-    console.log("useEffect " + minutes + ":" + seconds);
-    setDisplayedGameTimer(`${minutes}:${seconds}`);
-  }, [gameTimer]);
-
-  const startGame = (clear) => {
-    const startTimer = () => {
-      intervalRef.current = setInterval(() => {
-        setGameTimer((prevState) => prevState + 1);
-      }, 1000);
-    };
-    const resetTimer = () => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-      setGameTimer(0);
-    };
-
-    if (clear === false) {
-      startTimer();
-      updateGameState(true);
-    } else {
-      resetTimer();
-      updateGameState(false);
-    }
-  };
-
+const GameNav = ({
+  gameScoreStreak,
+  gameActive,
+  startGame,
+  displayedGameTimer,
+}) => {
   return (
     <div className="topBar">
       <div className="gameScore"> Game Score: {gameScoreStreak}</div>

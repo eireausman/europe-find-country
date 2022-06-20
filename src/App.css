@@ -1,12 +1,47 @@
 body {
   background-image: linear-gradient(rgb(101, 71, 184), rgb(49, 48, 48));
-
-  height: 100vh;
+  height: 780px;
   width: 100vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 0.8rem;
 }
 
 .countrySelect {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgb(65, 19, 193);
+  color: white;
+  padding: 10px;
+  overflow: auto;
+}
+
+.countrySelectGuessedCountries {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.countrySelectListItem {
+  background-color: rgb(41, 8, 132);
+  color: white;
+  text-align: left;
+  text-indent: 10px;
+  border-radius: 4px;
+  border: 0px;
+  padding: 0px;
+  margin: 2px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.countrySelectListItem:hover {
+  background-color: rgb(255, 255, 255);
+  color: rgb(41, 8, 132);
+  /* color: white; */
+  cursor: pointer;
 }
 
 .countrySelectContainer {
@@ -14,16 +49,22 @@ body {
   width: 880px;
 }
 
-.countryPin {
+.countryPinButton {
   position: absolute;
+  cursor: pointer;
+  background-color: #ffffff00;
+  border: 1px;
+  padding: 0px;
+}
+
+.countryPinImg {
   animation: shake 1.4s;
   animation-iteration-count: infinite;
   height: 25px;
   cursor: pointer;
 }
 
-.countryPinGuessed {
-  position: absolute;
+.countryPinGuessedImg {
   animation: shake 1.4s;
   animation-iteration-count: infinite;
   height: 25px;
@@ -36,16 +77,29 @@ body {
   cursor: pointer;
 }
 
+/* .gameEndModalTransition-enter {
+  opacity: 1;
+}
+.gameEndModalTransition-enter-active {
+  opacity: 0.01;
+} */
+.gameEndModalTransition-exit {
+  transform: translate(0px, -700px);
+}
+.gameEndModalTransition-exit-active {
+  opacity: 0.01;
+}
+
 .gameMapOverlay {
   position: absolute;
-  margin-top: 30px;
+  display: flex;
+  justify-content: center;
   height: 750px;
   width: 880px;
 }
 
 .gameMapImage {
   position: absolute;
-  margin-top: 30px;
   height: 750px;
   width: 880px;
   border: 2px solid white;
@@ -53,13 +107,97 @@ body {
   box-shadow: 0 0 20px 2px rgba(255, 255, 255, 0.161);
 }
 
-.gameScore {
+.gameModal {
+  position: absolute;
+  top: 20vh;
+  width: 320px;
+  border-radius: 3px;
+  border: 1px solid rgb(10, 104, 255);
+  background: rgb(9, 82, 185);
+  color: rgb(255, 255, 255);
+  padding: 10px;
+}
+
+.gameModal h1 {
+  font-weight: bold;
+}
+.gameModal p {
+  margin-top: 20px;
+}
+
+.gameModal ol {
+  margin-top: 10px;
+}
+
+.gameModal button {
+  background-color: white;
+  color: rgb(0, 72, 255);
+  /* border: 1px solid rgb(0, 72, 255); */
+  border: 1px solid white;
+  border-radius: 4px;
+  padding: 5px 15px 5px 15px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.gameModal button:hover {
+  background-color: rgb(189, 206, 249);
+}
+
+.guessResultLabel {
+  position: absolute;
+  left: 0px;
+  padding: 30px 20px 20px 20px;
+  background: rgb(65, 19, 193);
+  color: white;
+  width: 120px;
+  max-height: 100px;
+  /* border-left: 2px solid white; */
+  border-radius: 0px 7px 7px 0px;
+  text-align: center;
+  opacity: 0.01;
+  transition: opacity 3.5s;
+  z-index: 1;
+}
+
+.guessResultLabelTransition-enter {
+  opacity: 0.01;
+}
+.guessResultLabelTransition-enter-active {
+  opacity: 1;
+
+  transition: all 1.4s ease-in;
+}
+.guessResultLabelTransition-exit {
+  opacity: 1;
+}
+.guessResultLabelTransition-exit-active {
+  opacity: 0.01;
+  transition: all 1.4s ease-in;
 }
 
 .mapContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.newGameModal {
+  transition: 3s;
+}
+
+/* .newGameModalTransition-enter {
+  opacity: 1;
+}
+.newGameModalTransition-enter-active {
+  opacity: 0.01;
+} */
+.newGameModalTransition-exit {
+  transform: translate(0px, -700px);
+}
+.newGameModalTransition-exit-active {
+  opacity: 0.01;
 }
 
 .startGame {
@@ -69,11 +207,11 @@ body {
 .topBar {
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
   width: 300px;
-  padding: 5px;
-  gap: 20px;
-  margin-right: 40px;
+  height: 20px;
+  padding: 5px 10px 5px 10px;
   border-top: 0px;
   border-right: 1px;
   border-bottom: 1px;

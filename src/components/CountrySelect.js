@@ -1,34 +1,61 @@
-import React, { useState } from "react";
+import React from "react";
 
 const CountrySelect = ({
   activeCountryOnMap,
   countriesLocations,
   evaluateGuess,
 }) => {
+  const newTop = parseInt(activeCountryOnMap.yTop) - 30;
+  const newLeft = parseInt(activeCountryOnMap.xLeft) + 30;
+
   return (
-    <select
-      onChange={evaluateGuess}
+    <div
       defaultValue={"Which Country is this?"}
       name="countriesSelector"
       style={{
-        top: activeCountryOnMap.yTop + "px",
-        left: activeCountryOnMap.xLeft + "px",
+        top: newTop + "px",
+        left: newLeft + "px",
       }}
       className="countrySelect"
     >
-      <option disabled>Which Country is this?</option>
-      {countriesLocations.map((country) =>
-        country.guessed === false ? (
-          <option key={country.name} value={country.name}>
-            {country.name}
-          </option>
-        ) : (
-          <option key={country.name} disabled value={country.name}>
-            {country.name}
-          </option>
-        )
+      <p>Which Country is this?</p>
+      {countriesLocations.map(
+        (country) =>
+          country.guessed === false && (
+            <button
+              className="countrySelectListItem"
+              key={country.name}
+              onClick={(e) =>
+                evaluateGuess(e, country.name, country.yTop, country.xLeft)
+              }
+              value={country.name}
+            >
+              {country.name}
+            </button>
+          )
+        //  : (
+        //   <option key={country.name} disabled value={country.name}>
+        //     {country.name}
+        //   </option>
+        // )
       )}
-    </select>
+      <div className="countrySelectGuessedCountries">
+        <b>Guessed countries:</b>
+        <ul>
+          {countriesLocations.map(
+            (country) =>
+              country.guessed === true && (
+                <li key={country.name}>- {country.name}</li>
+              )
+            //  : (
+            //   <option key={country.name} disabled value={country.name}>
+            //     {country.name}
+            //   </option>
+            // )
+          )}
+        </ul>
+      </div>
+    </div>
   );
 };
 

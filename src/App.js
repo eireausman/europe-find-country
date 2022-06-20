@@ -1,61 +1,83 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import initializeApp from "./modules/initializeFirebase";
+import { CSSTransition } from "react-transition-group";
 import GameNav from "./components/GameNav";
+import CountryPins from "./components/CountryPins";
 import CountrySelect from "./components/CountrySelect";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  query,
-  getDocs,
-  where,
-  orderBy,
-  addDoc,
-} from "firebase/firestore";
+import GuessResult from "./components/GuessResult";
+import NewGameModal from "./components/NewGameModal";
+import GameEndModal from "./components/GameEndModal";
+import loadCountryDataFromDB from "./modules/loadCountryDataFromDB";
 
 import "./cssReset.css";
 import "./App.css";
 import EuropeanMap from "./assets/images/europe-blank-map-countries-hd.jpeg";
-import locationPin from "./assets/images/pin.png";
-import Party from "./assets/images/party.png";
-import { isCompositeComponent } from "react-dom/test-utils";
-
-const firestore = getFirestore();
-
-// writeANewRecipe();
 
 const App = () => {
+  const [newGameShowModal, setNewGameShowModal] = useState(true);
+  const [gameEndShowModal, setGameEndShowModal] = useState(false);
   const [gameActive, setGameActive] = useState(false);
+  const [gameTimer, setGameTimer] = useState(0);
+  const [displayedGameTimer, setDisplayedGameTimer] = useState("00:00:00");
+  const [guessedCountry, setGuessedCountry] = useState({});
+  const [showGuessResult, setShowGuessResult] = useState(false);
   const [countriesLocations, setCountriesLocations] = useState([]);
   const [gameScoreStreak, setGameScoreStreak] = useState(0);
   const [showCountrySelector, setShowCountrySelector] = useState(false);
   const [activeCountryOnMap, setActiveCountryOnMap] = useState({});
-  const [inProp, setInProp] = useState(false);
+  const [showEndGameModal, setShowEndGameModal] = useState(false);
+  const intervalRef = useRef(null);
+  const gameEndTime = useRef({});
+
   useEffect(() => {
-    createInitialCountriesArray();
+    refreshCountryArray();
   }, []);
 
-  const createInitialCountriesArray = async () => {
-    let countriesArray = [];
-    const countriesQuery = query(collection(firestore, `countries`));
-    const querySnapshot = await getDocs(countriesQuery);
-    await querySnapshot.forEach((snap) => {
-      const thisCountry = {
-        xLeft: snap.data().xLeft,
-        yTop: snap.data().yTop,
-        name: snap.data().name,
-        guessed: snap.data().guessed,
-      };
-      countriesArray.push(thisCountry);
+  const getDisplayTime = (gameTimerInSeconds) => {
+    const minutes = Math.floor(gameTimerInSeconds / 60);
+    let displaySeconds = gameTimerInSeconds - minutes * 60;
+    if (parseInt(displaySeconds) < 9) {
+      displaySeconds = `0${displaySeconds}`;
+    }
+    return `${minutes}:${displaySeconds}`;
+  };
+
+  useEffect(() => {
+    const displayTime = getDisplayTime(gameTimer);
+    setDisplayedGameTimer(displayTime);
+  }, [gameTimer]);
+
+  const refreshCountryArray = async () => {
+    const data = await loadCountryDataFromDB().then((data) => {
+      setCountriesLocations(data);
     });
-    setCountriesLocations(countriesArray);
   };
 
   const updateGameState = (toState) => {
     setGameActive(toState);
-    console.log(true);
+  };
+
+  const startGame = (startNewGame) => {
+    const startTimer = () => {
+      intervalRef.current = setInterval(() => {
+        setGameTimer((prevState) => prevState + 1);
+      }, 1000);
+    };
+    const resetTimer = () => {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setGameTimer(0);
+    };
+
+    if (startNewGame === true) {
+      startTimer();
+      updateGameState(true);
+      setNewGameShowModal(false);
+      setGameEndShowModal(false);
+    } else {
+      resetTimer();
+      updateGameState(false);
+    }
   };
 
   const mapDotClickActions = (e, countryName, yTop, xLeft) => {
@@ -64,86 +86,102 @@ const App = () => {
       yTop: yTop,
       xLeft: xLeft,
     };
-
     setActiveCountryOnMap(activeCountry);
     setShowCountrySelector(true);
-    setInProp(true);
+    setShowGuessResult(false);
   };
 
-  const evaluateGuess = (e) => {
-    const guessedCountry = e.target.value;
-    if (guessedCountry === activeCountryOnMap.name) {
+  const evaluateGuess = (e, countryName) => {
+    const guessDetail = {
+      country: countryName,
+      guessLabelPositionTop: activeCountryOnMap.yTop,
+    };
+    if (guessDetail.country === activeCountryOnMap.name) {
+      // correct guess actions:
+      guessDetail.correctGuess = true;
+      setGuessedCountry(guessDetail);
       setGameScoreStreak(gameScoreStreak + 1);
       const copyCountriesLocations = [...countriesLocations];
       const foundCountry = copyCountriesLocations.find(
-        (element) => element.name === guessedCountry
+        (element) => element.name === guessDetail.country
       );
       foundCountry.guessed = true;
       setCountriesLocations(copyCountriesLocations);
-      console.log(countriesLocations);
-      setShowCountrySelector(false);
+      // Game end check:
+      const leftGuesses = copyCountriesLocations.filter(
+        (element) => element.guessed === false
+      ).length;
+      if (leftGuesses === 0) {
+        gameEndTime.current = { seconds: gameTimer, clock: displayedGameTimer };
+
+        startGame(false);
+        refreshCountryArray();
+        setGameEndShowModal(true);
+      }
+    } else {
+      // incorrect guess actions
+      guessDetail.correctGuess = false;
+      setGuessedCountry(guessDetail);
     }
+    // actions that take place after all guesses (regardless of correctness)
+    setActiveCountryOnMap({});
+    setShowCountrySelector(false);
+    setShowGuessResult(true);
   };
 
   return (
     <div className="mapContainer">
-      <GameNav
-        gameScoreStreak={gameScoreStreak}
-        gameActive={gameActive}
-        updateGameState={updateGameState}
-      />
       <img
         className="gameMapImage"
         src={EuropeanMap}
         alt="Game Map - Europe"
       ></img>
-      {showCountrySelector ? (
-        <div className="gameMapOverlay">
-          <CSSTransition in={inProp} timeout={4000} classNames="my-node">
-            <CountrySelect
-              activeCountryOnMap={activeCountryOnMap}
-              countriesLocations={countriesLocations}
-              evaluateGuess={evaluateGuess}
-            />
-          </CSSTransition>
-        </div>
-      ) : (
-        <div className="gameMapOverlay">
-          {countriesLocations.map((country) =>
-            country.guessed === false ? (
-              <img
-                src={locationPin}
-                className="countryPin"
-                alt="Click to guess this country"
-                onClick={(e) =>
-                  mapDotClickActions(
-                    e,
-                    country.name,
-                    country.yTop,
-                    country.xLeft
-                  )
-                }
-                key={country.name}
-                style={{
-                  top: country.yTop + "px",
-                  left: country.xLeft + "px",
-                }}
-              ></img>
-            ) : (
-              <img
-                src={Party}
-                className="countryPinGuessed"
-                alt={country.name}
-                key={country.name}
-                style={{
-                  top: country.yTop + "px",
-                  left: country.xLeft + "px",
-                }}
-              ></img>
-            )
-          )}
-        </div>
-      )}
+
+      <div className="gameMapOverlay">
+        {gameActive && (
+          <GuessResult
+            guessedCountry={guessedCountry}
+            showGuessResult={showGuessResult}
+          />
+        )}
+        <GameNav
+          gameScoreStreak={gameScoreStreak}
+          gameActive={gameActive}
+          updateGameState={updateGameState}
+          startGame={startGame}
+          displayedGameTimer={displayedGameTimer}
+        />
+        {showCountrySelector && (
+          <CountrySelect
+            activeCountryOnMap={activeCountryOnMap}
+            countriesLocations={countriesLocations}
+            evaluateGuess={evaluateGuess}
+          />
+        )}
+        {gameActive && (
+          <CountryPins
+            countriesLocations={countriesLocations}
+            mapDotClickActions={mapDotClickActions}
+            activeCountryOnMap={activeCountryOnMap}
+          />
+        )}
+      </div>
+      <CSSTransition
+        in={newGameShowModal}
+        timeout={2000}
+        unmountOnExit
+        classNames="newGameModalTransition"
+      >
+        <NewGameModal startGame={startGame} />
+      </CSSTransition>
+      <CSSTransition
+        in={gameEndShowModal}
+        timeout={2000}
+        unmountOnExit
+        classNames="gameEndModalTransition"
+      >
+        <GameEndModal startGame={startGame} gameEndTime={gameEndTime} />
+      </CSSTransition>
     </div>
   );
 };
