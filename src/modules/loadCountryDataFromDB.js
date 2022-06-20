@@ -6,6 +6,8 @@ import {
   query,
   getDocs,
   limit,
+  setDoc,
+  doc,
 } from "firebase/firestore";
 
 const firestore = getFirestore();

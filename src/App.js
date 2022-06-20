@@ -129,8 +129,17 @@ const App = () => {
     setShowGuessResult(true);
   };
 
+  const consolelogcoords = (e) => {
+    const coords = {
+      xLeft: e.pageX,
+      yTop: e.pageY,
+    };
+    console.log(coords);
+    console.log(e);
+  };
+
   return (
-    <div className="mapContainer">
+    <div className="mapContainer" onClick={consolelogcoords}>
       <img
         className="gameMapImage"
         src={EuropeanMap}

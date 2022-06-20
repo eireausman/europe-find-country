@@ -9,11 +9,12 @@ const NewGameModal = ({ startGame }) => {
       <ol>
         <li>- Click on Start Game below</li>
         <li>- Select a pin on the map</li>
-        <li>- Guess the country and wait to see if you were right. </li>
+        <li>- Guess the country</li>
       </ol>
       <p>
-        How to win: guess all the countries to join the leaderboard. Whoever
-        guesses all countries correctly, wins.
+        How to win:
+        <br />
+        Guess all the countries in the shortest possible time.
       </p>
       <button onClick={() => startGame(true)}>Start Game</button>
     </div>
